@@ -1,0 +1,48 @@
+\documentclass{article}
+\usepackage{tikzCodeBlock}
+
+\usepackage[letterpaper,textwidth=6in]{geometry}
+
+\begin{document}
+
+\lstdefinestyle{ltex}{
+	language=[LaTeX]TeX,
+	commentstyle=\color{red}
+}
+
+\tikzset{
+	foo/.style={
+		shape = code node,
+		draw = blue!50,
+		thick, 
+		codebody color = white,
+		inner sep = 1ex,
+		outer sep = 0pt,
+		text width =\textwidth
+	}
+}
+
+\begin{tikzCodeBlock}
+\documentclass{article}
+
+% All LaTeX documents including 
+% tikz() output must use this 
+% package!
+\usepackage{tikz}
+
+\begin{document}
+  \begin{figure}[!h]
+    \centering
+        
+    % The output from tikz()
+    % is imported here.
+    \input{simpleEx.tex}
+        
+    \caption{Simple Example}
+  \end{figure}
+\end{document}
+\end{tikzCodeBlock}
+
+\tikzCodeInput{tikzDevice.c}
+
+\end{document}  
