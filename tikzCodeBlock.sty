@@ -104,10 +104,10 @@
     }
 }
 
-% Default widths.
-\def\pgf@codestripe@width{4ex}
-
 %---------------------  Begin  User Level Shape Options -----------------
+
+% Default widths.
+\def\pgf@codestripe@width{0pt}
 
 % Default color values
 \def\pgf@codebody@color{white}
@@ -176,8 +176,6 @@
 	}
 }
 
-
-
 % When called, calcPageFree figures out how much free space is
 % remaining on the page and stores that value in the variable
 % pageFree
@@ -188,6 +186,7 @@
 	% non-empty.
 	\vbox{}%
 	\par%
+	\pagebreak[1]%
 	% pagegoal is a global variable that stores the current "maximum size" 
 	% for this page. When the length of the page content reaches the value of 
 	% pagegoal, a pagebreak will be forced.
@@ -248,11 +247,11 @@
 	\loop
 		% Figure out how much free space we have.
 		\tikzCode@calcPageFree
-		% Initiate a new page if we are within 5 lines of using
+		% Initiate a new page if we are within 8 lines of using
 		% this page up. This prevents ridiculous output such
 		% as code chunks displaying 2 lines. If we make a new
 		% page, we will also need to recalculate the space available.
-		\ifdim\tikzCode@pageFree < 5\baselineskip
+		\ifdim\tikzCode@pageFree < 8\baselineskip
 			\newpage
 			\tikzCode@calcPageFree
 		\fi		
@@ -284,10 +283,12 @@
 
 \newcommand{\tikzCode@adjPageFree}{%
 	\addtolength\tikzCode@pageFree{-2.25\baselineskip}%
-	% Take an extra line and a half if we are printing a header.
-	\ifnum 0\iftikzCode@heapStart \else 1 \fi% 
+	% Take an extra two lines if we are printing a header.
+	% Really... we need to calculate the header height and
+	% gobble that- but this works for now.
+	\ifnum 0\iftikzCode@heapStart \else 1\fi% 
 		\ifx \tikzCode@codeNodeTitle \undefined 1\else \fi=0 %
-		\addtolength\tikzCode@pageFree{-1.5\baselineskip}%
+		\addtolength\tikzCode@pageFree{-2\baselineskip}%
 	\fi%
 	% The same sort of test won't work for the footer unfortunately...
 	% But it will only break in a special case- when a short code
@@ -315,7 +316,7 @@
 		% Second line checks to see if codeNodeTitle is defined. If it is not, a
 		% 1 gets added. If 0 still equals 0 (i.e. no ones were added) by the end of 
 		% the ifnum containing these two tests, the main body of code is executed.
-		\ifnum 0\iftikzCode@heapStart \else 1 \fi% 
+		\ifnum 0\iftikzCode@heapStart \else 1\fi% 
 			\ifx \tikzCode@codeNodeTitle \undefined 1\else \fi=0 %The extra space is important.
 		
 			% Code to be executed starts here.
@@ -333,7 +334,7 @@
 		
 		
 		% Print footer component, if this is the last chunk and it is requested.
-		\ifnum 0\iftikzCode@heapEnd \else 1 \fi% 
+		\ifnum 0\iftikzCode@heapEnd \else 1\fi% 
 			\ifx \tikzCode@codeNodeFooter \undefined 1\else \fi=0 %
 			
 			\node[/tikzCode/code footer] at (code node body.south) {
