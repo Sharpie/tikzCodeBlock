@@ -144,6 +144,11 @@
 \newbox\tikzCode@codeHeap
 \newbox\tikzCode@codeChunk
 
+% These conditionals are used to ensure things like code chunk
+% titles and footers are only printed on the first and last chunks.
+\newif\iftikzCode@heapStart
+\newif\iftikzCode@heapEnd
+
 % Since listings does not like to work inside defined environments,
 % all source code enclosed in the tikzCodeBlock environment will
 % be stashed in a temporary file and parsed back in using: 
@@ -224,7 +229,7 @@
 	\verbatim@start
 }
 
-\newcommand\tikzCode@suspendOutputCapture{%
+\newcommand{\tikzCode@suspendOutputCapture}{%
 	% Close the temporary file.
 	\immediate\closeout\tikzCode@tempFile
 	% Undoes whatever @bsphack does.
@@ -233,9 +238,13 @@
 	\endgroup
 }
 
-\newcommand\tikzCode@processCodeHeap{%
+\newcommand{\tikzCode@processCodeHeap}{%
 	% Here we loop through the code heap, split it's output
 	% into page-sized chunks and write them out.
+	% Flip our "start of input" flag to true and our
+	% "end of input" flag to false.
+	\tikzCode@heapStarttrue%
+	\tikzCode@heapEndfalse%
 	\loop
 		% Figure out how much free space we have.
 		\tikzCode@calcPageFree
@@ -249,27 +258,43 @@
 		\fi		
 		% If the amount of text in the codeHeap is less than
 		% the free space we have left in the page, we transfer
-		% it all to the codeChunk
-		\ifdim\ht\tikzCode@codeHeap < \tikzCode@pageFree		
+		% it all to the codeChunk. Since this chunk will be the last
+		% one printed, set the value of heapStop to true.
+		\ifdim\ht\tikzCode@codeHeap < \tikzCode@pageFree	
+			\tikzCode@heapEndtrue%	
 			\setbox\tikzCode@codeChunk =% 
 				\vsplit\tikzCode@codeHeap to \ht\tikzCode@codeHeap
 		\else
 			% The codeHeap contains more output than will fit
-			% on the current page. We shorten the amount of
-			% free space by a little more than two lines (to prevent 
-			% automatic page breaking). Then we fill the codeChunk 
-			% with as much output as possible.
-			\addtolength\tikzCode@pageFree{-2.25\baselineskip}
+			% on the current page. First, we call adjPageFree
+			% which shrinks pageFree so we don't trigger any
+			% automatic page breaks. Then we fill the codeChunk 
+			% with an amount of output equal to pageFree.
+			\tikzCode@adjPageFree
 			\setbox\tikzCode@codeChunk =% 
 				\vsplit\tikzCode@codeHeap to \tikzCode@pageFree				
 		\fi		
 		\tikzCode@processCodeChunk		
+		% Set the start of input flag to false
+		\tikzCode@heapStartfalse
 		% If there is output left in the codeHeap, we repeat this loop.
 		\ifdim\ht\tikzCode@codeHeap > 0pt
 			\repeat
 }
 
-\newcommand\tikzCode@processCodeChunk{%
+\newcommand{\tikzCode@adjPageFree}{%
+	\addtolength\tikzCode@pageFree{-2.25\baselineskip}%
+	% Take an extra line and a half if we are printing a header.
+	\ifnum 0\iftikzCode@heapStart \else 1 \fi% 
+		\ifx \tikzCode@codeNodeTitle \undefined 1\else \fi=0 %
+		\addtolength\tikzCode@pageFree{-1.5\baselineskip}%
+	\fi%
+	% The same sort of test won't work for the footer unfortunately...
+	% But it will only break in a special case- when a short code
+	% chunk fills the exact bottom of a page and then a footer is added.
+}
+
+\newcommand{\tikzCode@processCodeChunk}{%
 	% Generate output from the current code chunk.
 	\begin{tikzpicture}
 	
@@ -280,11 +305,20 @@
 		
 		};
 		
-		% Print title component, if requested.
-		\ifx \tikzCode@codeNodeTitle \undefined
-			\relax
-		\else
+		% Print title component, only if provided and we are processing
+		% the first code chunk. This little sucker is basically the TeX version
+		% of:
+		%
+		%     if( heapStart == true and is.defined(codeNodeTitle) ) then
+		%
+		% First line checks to see if heapStart is true. If it is false, a 1 gets added.
+		% Second line checks to see if codeNodeTitle is defined. If it is not, a
+		% 1 gets added. If 0 still equals 0 (i.e. no ones were added) by the end of 
+		% the ifnum containing these two tests, the main body of code is executed.
+		\ifnum 0\iftikzCode@heapStart \else 1 \fi% 
+			\ifx \tikzCode@codeNodeTitle \undefined 1\else \fi=0 %The extra space is important.
 		
+			% Code to be executed starts here.
 			\node[/tikzCode/code title body] (code node title) {
 		 		\tikzCode@codeNodeTitle
 			};
@@ -294,15 +328,18 @@
 				(code node title.north east) --
 				(code node title.north west) [sharp corners] --
 				cycle;
+		
 		\fi
 		
-		% Print footer component, if requested.
-		\ifx \tikzCode@codeNodeFooter \undefined
-			\relax
-		\else
+		
+		% Print footer component, if this is the last chunk and it is requested.
+		\ifnum 0\iftikzCode@heapEnd \else 1 \fi% 
+			\ifx \tikzCode@codeNodeFooter \undefined 1\else \fi=0 %
+			
 			\node[/tikzCode/code footer] at (code node body.south) {
 				\tikzCode@codeNodeFooter
 			};
+			
 		\fi
 	
 	\end{tikzpicture}
