@@ -153,6 +153,7 @@
 % algorithm implemented by this package. It is enabled by default.
 \newif\iftikzCode@breakPages
 \tikzCode@breakPagestrue
+\def\tikzCode@true{true}
 
 % Since listings does not like to work inside defined environments,
 % all source code enclosed in the tikzCodeBlock environment will
@@ -174,7 +175,7 @@
 	\pgfkeys{/tikzCode/title/.store in=\tikzCode@codeNodeTitle,
 		/tikzCode/footer/.store in=\tikzCode@codeNodeFooter,
 		/tikzCode/listing style/.store in=\tikzCode@listingStyle,
-		/tikzCode/break pages/.is if=tikzCode@breakPages,
+		/tikzCode/no break/.store in=\tikzCode@noBreak,
 		/tikzCode/code body/.style={/tikzCode/defaults/code body},
 		/tikzCode/code title body/.style={/tikzCode/defaults/code title body},
 		/tikzCode/code title outline/.style={/tikzCode/defaults/code title outline},
@@ -405,6 +406,13 @@
 }%
 {%
 	\tikzCode@suspendOutputCapture
+	
+	% This odd roundabout method to setting the page break
+	% conditional is here because I don't feel like hacking
+	% Sweave any more at this time.
+	\ifx \tikzCode@noBreak \tikzCode@true
+		\tikzCode@breakPagesfalse
+	\fi
 		
 	% If we are breaking pages, load the contents 
 	% of the temp file into the codeHeap via the 
@@ -451,6 +459,14 @@
 	\tikzCode@setupKeys
 	% Shift the key directory to our namespace.
 	\pgfkeys{ /tikzCode/.cd, #1 }
+	
+	% This odd roundabout method to setting the page break
+	% conditional is here because I don't feel like hacking
+	% Sweave any more at this time.
+	\ifx \tikzCode@noBreak \tikzCode@true
+		\tikzCode@breakPagesfalse
+	\fi
+	
 	% If we are breaking pages, load the contents 
 	% of the temp file into the codeHeap via the 
 	% listings package.
