@@ -1,0 +1,74 @@
+%-------------------------------------------------------------------------------
+%
+% luaio
+%
+% Provides a replacement for \newwrite that uses the Lua io module instead of
+% the limited set of 16 TeX write registers. Requires LuaTeX.
+%
+% Copyright 2011 by Charlie Sharpsteen.
+%
+% This program is free software: you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation, either version 3 of the License, or
+% (at your option) any later version.
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program.  If not, see <http://www.gnu.org/licenses/>.
+%
+%-------------------------------------------------------------------------------
+
+% TODO: Add proper LuaTeX detection and avoid running any of this stuff if it
+% is not the active engine. Also, properly namespace the Luamodulet defined
+% below.
+\directlua{
+
+  ltio = {}
+  ltio.handles = {}
+
+  function ltio.new_handle()
+    table.insert(ltio.handles, 0)
+    tex.print(table.getn(ltio.handles))
+  end
+
+  function ltio.open_handle(n, path)
+    if not ltio.handles[n] == 0 then
+      ltio.handles[n]:close()
+    end
+
+    ltio.handles[n] = io.open(path, "w")
+  end
+
+  function ltio.close_handle(n)
+    if not ltio.handles[n] == 0 then
+      ltio.handles[n]:close()
+      ltio.handles[n] = 0
+    end
+  end
+
+  function ltio.write_handle(n, string)
+    if ltio.handles[n] == 0 then
+      texio.write("\string\n" .. string .. "\string\n")
+    else
+      ltio.handles[n]:write(string .. "\string\n")
+    end
+  end
+
+}
+
+
+% TODO: Add proper @ name mangling to every thing in here. Currently everything
+% is user-accessible to facilitate package testing.
+
+
+% Defined as a "outer mode only" macro so it can't be nested inside other macro
+% definitions. This matches the way the plain TeX macro \newwrite is defined.
+\outer\def\newlwrite#1{\edef#1{\directlua{ltio.new_handle()}}}
+
+\def\lopenout#1#2{\directlua{ltio.open_handle(#1, "#2")}}
+\def\lcloseout#1{\directlua{ltio.close_handle(#1)}}
+\def\lwrite#1#2{\directlua{ltio.write_handle(#1, "#2")}}
