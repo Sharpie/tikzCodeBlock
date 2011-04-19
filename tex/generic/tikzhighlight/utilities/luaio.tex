@@ -22,6 +22,16 @@
 %
 %-------------------------------------------------------------------------------
 
+% TODO: Add proper @ name mangling to every thing in here. Currently everything
+% is user-accessible to facilitate package testing. Move the \makeatletter
+% operations into proper front end code.
+\makeatletter
+
+% In most cases, LuaTeX only defines the \directlua primitive command. This
+% adds some additional TeX commands to our namespace by prefixing them with
+% luaio@.
+\directlua{ tex.enableprimitives('luaio@', {'luaescapestring'}) }
+
 % TODO: Add proper LuaTeX detection and avoid running any of this stuff if it
 % is not the active engine. Also, properly namespace the Luamodulet defined
 % below.
@@ -61,14 +71,14 @@
 }
 
 
-% TODO: Add proper @ name mangling to every thing in here. Currently everything
-% is user-accessible to facilitate package testing.
-
-
 % Defined as a "outer mode only" macro so it can't be nested inside other macro
 % definitions. This matches the way the plain TeX macro \newwrite is defined.
 \outer\def\newlwrite#1{\edef#1{\directlua{ltio.new_handle()}}}
 
-\def\lopenout#1#2{\directlua{ltio.open_handle(#1, "#2")}}
+\def\lopenout#1#2{\directlua{ltio.open_handle(#1, "\luaio@luaescapestring{#2}")}}
 \def\lcloseout#1{\directlua{ltio.close_handle(#1)}}
-\def\lwrite#1#2{\directlua{ltio.write_handle(#1, "#2")}}
+\def\lwrite#1#2{\directlua{ltio.write_handle(#1, "\luaio@luaescapestring{#2}")}}
+
+\makeatother
+\endinput
+
