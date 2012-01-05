@@ -50,6 +50,7 @@
 
 \RequirePackage{tikz}
 \usetikzlibrary{positioning}
+\RequirePackage{framed}
 \RequirePackage{listings}
 \RequirePackage{verbatim}
 
@@ -386,6 +387,10 @@
 	\end{tikzpicture}
 }
 
+% This macro sets a chunk of text inside a specialized node.
+\newcommand{\tikzCode@codeframe}[1]{%
+  \tikz{\node[/tikzCode/code body] {#1};}}
+
 %--------------------- End Internal Package Macros -----------------------
 
 % Default Code Node Style definitions.
@@ -426,120 +431,66 @@
 	}
 }
 
-%===============================================
 
-%--------------------- Begin User-Level Environments ------------------
+% -----------------------------------------------------------------------------
+%                             User-Level Commands
+% -----------------------------------------------------------------------------
 
+% tikzCodeBlock
+% =============
+% This environment captures contents verbatim, processes the text with the
+% listings package, pagebreaks the results into chunks using the framed
+% package, then sets each chunk in a TikZ node.
 \newenvironment{tikzCodeBlock}[1][]{%
-	% Process environment options.
-	\tikzCode@setupKeys
-	% Shift the key directory to our namespace.
-	\pgfkeys{ /tikzCode/.cd, #1 }
-	% Pipe all environment contents to the
-	% temp file.
-	\tikzCode@beginOutputCapture%
+  % Process environment options.
+  \tikzCode@setupKeys
+  % Shift the key directory to our namespace.
+  \pgfkeys{ /tikzCode/.cd, #1 }%
+  % Patch our code into the framed package.
+  \def\FrameCommand{\tikzCode@codeframe}%
+  \def\FirstFrameCommand{\tikzCode@codeframe}%
+  \def\MidFrameCommand{\tikzCode@codeframe}%
+  \def\LastFrameCommand{\tikzCode@codeframe}%
+  % Start the framed environment.
+  \MakeFramed{\FrameRestore}%
+  % Begin verbatim capture of everything inside this environment.
+  \tikzCode@beginOutputCapture
 }%
 {%
-	\tikzCode@suspendOutputCapture
-	
-	% This odd roundabout method to setting the page break
-	% conditional is here because I don't feel like hacking
-	% Sweave any more at this time.
-	\ifx \tikzCode@noBreak \tikzCode@true
-		\tikzCode@breakPagesfalse
-	\fi
-		
-	% If we are breaking pages, load the contents 
-	% of the temp file into the codeHeap via the 
-	% listings package.
-	\iftikzCode@breakPages
-		
-		\setbox\tikzCode@codeHeap = \vbox{
-			\ifx \tikzCode@listingStyle \undefined
-				\lstinputlisting{\jobname.lst}
-			\else
-				\lstinputlisting[style=\tikzCode@listingStyle]{\jobname.lst}
-			\fi
-		}
-		% Process the codeHeap
-		\tikzCode@processCodeHeap	
-		
-	\else
-		% We are not breaking pages, load the contents
-		% directly into the code chunk and process it.
-		\setbox\tikzCode@codeChunk = \vbox{
-			\ifx \tikzCode@listingStyle \undefined
-				\lstinputlisting{\jobname.lst}
-			\else
-				\lstinputlisting[style=\tikzCode@listingStyle]{\jobname.lst}
-			\fi
-		}
-		% Enable header and footer printing.
-		\tikzCode@heapStarttrue
-		\tikzCode@heapEndtrue
-		
-		% Output the code chunk
-		\tikzCode@processCodeChunk
-		
-	\fi
+  \tikzCode@suspendOutputCapture
+  \ifx \tikzCode@listingStyle \undefined
+    \lstinputlisting{\jobname.lst}%
+  \else
+    \lstinputlisting[style=\tikzCode@listingStyle]{\jobname.lst}%
+  \fi
+  \endMakeFramed
 }
 
 
-%--------------------- End User-Level Environments --------------------
-
-%--------------------- Begin User-Level Commands  --------------------
-
+% tikzCodeInput
+% =============
+% This is like the tikzCodeBlock environment except that it reads input from a
+% file.
 \newcommand{\tikzCodeInput}[2][]{%
-	% Process command options.
-	\tikzCode@setupKeys
-	% Shift the key directory to our namespace.
-	\pgfkeys{ /tikzCode/.cd, #1 }
-	
-	% This odd roundabout method to setting the page break
-	% conditional is here because I don't feel like hacking
-	% Sweave any more at this time.
-	\ifx \tikzCode@noBreak \tikzCode@true
-		\tikzCode@breakPagesfalse
-	\fi
-	
-	% If we are breaking pages, load the contents 
-	% of the temp file into the codeHeap via the 
-	% listings package.
-	\iftikzCode@breakPages
-		
-		\setbox\tikzCode@codeHeap = \vbox{
-			\ifx \tikzCode@listingStyle \undefined
-				\lstinputlisting{#2}
-			\else
-				\lstinputlisting[style=\tikzCode@listingStyle]{#2}
-			\fi
-		}
-		% Process the codeHeap
-		\tikzCode@processCodeHeap	
-		
-	\else
-		% We are not breaking pages, load the contents
-		% directly into the code chunk and process it.
-		\setbox\tikzCode@codeChunk = \vbox{
-			\ifx \tikzCode@listingStyle \undefined
-				\lstinputlisting{#2}
-			\else
-				\lstinputlisting[style=\tikzCode@listingStyle]{#2}
-			\fi
-		}
-		% Enable header and footer printing.
-		\tikzCode@heapStarttrue
-		\tikzCode@heapEndtrue
-		
-		% Output the code chunk
-		\tikzCode@processCodeChunk
-		
-	\fi
+  % Process environment options.
+  \tikzCode@setupKeys
+  % Shift the key directory to our namespace.
+  \pgfkeys{ /tikzCode/.cd, #1 }%
+  % Patch our code into the framed package.
+  \def\FrameCommand{\tikzCode@codeframe}%
+  \def\FirstFrameCommand{\tikzCode@codeframe}%
+  \def\MidFrameCommand{\tikzCode@codeframe}%
+  \def\LastFrameCommand{\tikzCode@codeframe}%
+  % Start the framed environment.
+  \MakeFramed{\FrameRestore}%
+  \ifx \tikzCode@listingStyle \undefined
+    \lstinputlisting{#2}%
+  \else
+    \lstinputlisting[style=\tikzCode@listingStyle]{#2}%
+  \fi
+  \endMakeFramed
 }
 
 
-%--------------------- End User-Level Commands -----------------------
-
-%===============================================
 % Make sure LaTeX knows we're done here.
 \endinput
