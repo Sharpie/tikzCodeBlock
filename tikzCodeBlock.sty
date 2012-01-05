@@ -397,11 +397,13 @@
 		% command :P
 		shape = code node,
 		draw = blue!50,
-		thick, 
+		thick,
 		codebody color = blue!10,
-		inner sep = 1ex,
+    codestripe width = 4ex,
 		outer sep = 0pt,
-		text width =\textwidth
+		inner sep = 1ex,
+    % Subtract off 2 * inner sep and line width
+		text width = {\textwidth - 2ex - 1.6pt}
 	},
 	/tikzCode/defaults/code title body/.style={
 		fill = white,
