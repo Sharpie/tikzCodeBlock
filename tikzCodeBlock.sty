@@ -12,8 +12,8 @@
 % user comes along and \newcommands the a macro with the same
 % name the two don't clash since they won't be using the @ character
 % anywhere. It's basically the LaTeX version of namespacing.
-
-\ProvidesPackage{tikzCodeBlock}
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{tikzCodeBlock}[2012/01/04 v0.1  Multipage listings set inside TikZ nodes]
 
 \RequirePackage{tikz}
 \usetikzlibrary{positioning}
