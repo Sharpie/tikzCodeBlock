@@ -387,9 +387,99 @@
 	\end{tikzpicture}
 }
 
+
 % This macro sets a chunk of text inside a specialized node.
-\newcommand{\tikzCode@codeframe}[1]{%
-  \tikz{\node[/tikzCode/code body] {#1};}}
+\newcommand{\tikzCode@place@codenodebody}[1]{%
+  \node[/tikzCode/code body] (code node body) {#1};
+}
+
+% This macro adds a header.
+\newcommand{\tikzCode@place@codenodetitle}{%
+  \node[/tikzCode/code title body] (code node title) {\tikzCode@codeNodeTitle};
+  \draw[/tikzCode/code title outline] (code node title.south west) --
+    (code node title.south east) --
+    (code node title.north east) --
+    (code node title.north west) --
+    cycle;
+}
+
+% And this one adds a footer.
+\newcommand{\tikzCode@place@codenodefooter}{%
+  \node[/tikzCode/code footer] {\tikzCode@codeNodeFooter};
+}
+
+
+% This macro outputs a singleton frame.
+\newcommand{\tikzCode@place@singleframe}[1]{%
+  \begin{tikzpicture}%
+
+    \tikzCode@place@codenodebody{#1}
+
+    \ifx \tikzCode@codeNodeTitle \undefined
+      % Nothin' to do.
+      \relax
+    \else
+      \tikzCode@place@codenodetitle
+    \fi
+
+    \ifx \tikzCode@codeNodeFooter \undefined
+      \relax
+    \else
+      \tikzCode@place@codenodefooter
+    \fi
+
+  \end{tikzpicture}%
+}
+
+
+% This macro outputs the first of a series of frames.
+\newcommand{\tikzCode@place@firstframe}[1]{%
+  \begin{tikzpicture}%
+
+    \tikzCode@place@codenodebody{#1}
+
+    \ifx \tikzCode@codeNodeTitle \undefined
+      % Nothin' to do.
+      \relax
+    \else
+      \tikzCode@place@codenodetitle
+    \fi
+
+  \end{tikzpicture}%
+}
+
+% This macro outputs the middle portions of a series of frames.
+\newcommand{\tikzCode@place@middleframe}[1]{%
+  \begin{tikzpicture}%
+
+    \tikzCode@place@codenodebody{#1}
+
+  \end{tikzpicture}%
+}
+
+% This macro outputs the last of a series of frames.
+\newcommand{\tikzCode@place@lastframe}[1]{%
+  \begin{tikzpicture}%
+
+    \tikzCode@place@codenodebody{#1}
+
+    \ifx \tikzCode@codeNodeFooter \undefined
+      \relax
+    \else
+      \tikzCode@place@codenodefooter
+    \fi
+
+  \end{tikzpicture}%
+}
+
+% This macro patches our code into the framed package.
+\newcommand{\tikzCode@set@framedcommands}{%
+  \def\FrameCommand{\tikzCode@place@singleframe}%
+  \def\FirstFrameCommand{\tikzCode@place@firstframe}%
+  \def\MidFrameCommand{\tikzCode@place@middleframe}%
+  \def\LastFrameCommand{\tikzCode@place@lastframe}%
+}
+
 
 %--------------------- End Internal Package Macros -----------------------
 
@@ -414,8 +504,8 @@
 		fill = white,
 		inner sep = 1ex,
 		outer sep = 0pt,
-		above = -1ex of code node body.north west,
-		anchor = south west
+		right = 0pt of code node body.north west,
+		anchor = base west
 	},
 	/tikzCode/defaults/code title outline/.style={
 		draw = blue!50,
@@ -424,10 +514,11 @@
 	/tikzCode/defaults/code footer/.style={
 		draw = blue!50,
 		thick,
-		rounded corners,
 		fill = white,
 		inner sep = 1ex,
 		outer sep = 0pt,
+		above = 0pt of code node body.south,
+		anchor = base
 	}
 }
 
@@ -446,11 +537,7 @@
   \tikzCode@setupKeys
   % Shift the key directory to our namespace.
   \pgfkeys{ /tikzCode/.cd, #1 }%
-  % Patch our code into the framed package.
-  \def\FrameCommand{\tikzCode@codeframe}%
-  \def\FirstFrameCommand{\tikzCode@codeframe}%
-  \def\MidFrameCommand{\tikzCode@codeframe}%
-  \def\LastFrameCommand{\tikzCode@codeframe}%
+  \tikzCode@set@framedcommands
   % Start the framed environment.
   \MakeFramed{\FrameRestore}%
   % Begin verbatim capture of everything inside this environment.
@@ -476,11 +563,7 @@
   \tikzCode@setupKeys
   % Shift the key directory to our namespace.
   \pgfkeys{ /tikzCode/.cd, #1 }%
-  % Patch our code into the framed package.
-  \def\FrameCommand{\tikzCode@codeframe}%
-  \def\FirstFrameCommand{\tikzCode@codeframe}%
-  \def\MidFrameCommand{\tikzCode@codeframe}%
-  \def\LastFrameCommand{\tikzCode@codeframe}%
+  \tikzCode@set@framedcommands
   % Start the framed environment.
   \MakeFramed{\FrameRestore}%
   \ifx \tikzCode@listingStyle \undefined

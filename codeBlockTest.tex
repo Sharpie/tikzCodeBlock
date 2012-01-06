@@ -20,7 +20,7 @@
 
 \lipsum[1]
 
-\begin{tikzCodeBlock}[listing style = ltex]
+\begin{tikzCodeBlock}[title = {Hello, world!}, listing style = ltex]
 \documentclass{article}
 
 % All LaTeX documents including
@@ -43,6 +43,11 @@
 
 \lipsum[2]
 
-\tikzCodeInput[listing style = cstyle]{examples/which.c}
+\tikzCodeInput[%
+  title = {Example of input from a file},
+  footer = {All done!},
+  listing style = cstyle%
+]
+  {examples/which.c}
 
 \end{document}
