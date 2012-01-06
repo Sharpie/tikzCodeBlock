@@ -166,12 +166,6 @@
 % All package variables, macros and styles shall start with
 % tikzCode
 
-% This conditional controls the execution of the page breaking
-% algorithm implemented by this package. It is enabled by default.
-\newif\iftikzCode@breakPages
-\tikzCode@breakPagestrue
-\def\tikzCode@true{true}
-
 % Since listings does not like to work inside defined environments,
 % all source code enclosed in the tikzCodeBlock environment will
 % be stashed in a temporary file and parsed back in using: 
@@ -192,7 +186,6 @@
 	\pgfkeys{/tikzCode/title/.store in=\tikzCode@codeNodeTitle,
 		/tikzCode/footer/.store in=\tikzCode@codeNodeFooter,
 		/tikzCode/listing style/.store in=\tikzCode@listingStyle,
-		/tikzCode/no break/.store in=\tikzCode@noBreak,
 		/tikzCode/code body/.style={/tikzCode/defaults/code body},
 		/tikzCode/code title body/.style={/tikzCode/defaults/code title body},
 		/tikzCode/code title outline/.style={/tikzCode/defaults/code title outline},
