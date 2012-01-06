@@ -387,9 +387,9 @@
 {%
   \tikzCode@suspendOutputCapture
   \ifx \tikzCode@listingStyle \undefined
-    \lstinputlisting{\jobname.lst}%
+    \lstinputlisting[resetmargins = true]{\jobname.lst}%
   \else
-    \lstinputlisting[style=\tikzCode@listingStyle]{\jobname.lst}%
+    \lstinputlisting[style = \tikzCode@listingStyle, resetmargins = true]{\jobname.lst}%
   \fi
   \endMakeFramed
 }
@@ -408,9 +408,9 @@
   % Start the framed environment.
   \MakeFramed{\FrameRestore}%
   \ifx \tikzCode@listingStyle \undefined
-    \lstinputlisting{#2}%
+    \lstinputlisting[resetmargins = true]{#2}%
   \else
-    \lstinputlisting[style=\tikzCode@listingStyle]{#2}%
+    \lstinputlisting[style = \tikzCode@listingStyle, resetmargins = true]{#2}%
   \fi
   \endMakeFramed
 }
