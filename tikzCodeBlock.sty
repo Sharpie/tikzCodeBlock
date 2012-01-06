@@ -31,22 +31,18 @@
 % DAMAGE.
 
 
-% Looking to make a nice code container- similar to that found
-% at http://code.google.com/p/syntaxhighlighter/
-% To do so, we need a customized shape that can have several
-% different background colors.
-
-% Code blocks should also break across pages, so we need some
-% additional TeX voodoo.
-
-% Building this I have finally started to learn what the hell
-% \makeatletter does- it shifts the character @ into 'user land'
-% so you can define macros with @ in their names. This way if a 
-% user comes along and \newcommands the a macro with the same
-% name the two don't clash since they won't be using the @ character
-% anywhere. It's basically the LaTeX version of namespacing.
+% =============================================================================
+%
+%                              tikzCodeBlock.sty
+%
+% =============================================================================
+% A nicely styled container for multipage code listings. Look and feel inspired
+% by SyntaxHighlighter (although this is just a pale imitation):
+%
+%    http://alexgorbatchev.com/SyntaxHighlighter
+%
 \NeedsTeXFormat{LaTeX2e}
-\ProvidesPackage{tikzCodeBlock}[2012/01/04 v0.1  Multipage listings set inside TikZ nodes]
+\ProvidesPackage{tikzCodeBlock}[2012/01/05 v0.2  Multipage listings set inside TikZ nodes]
 
 \RequirePackage{tikz}
 \usetikzlibrary{positioning}
