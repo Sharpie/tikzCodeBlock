@@ -46,9 +46,9 @@
 
 \RequirePackage{tikz}
 \usetikzlibrary{positioning}
+
 \RequirePackage{framed}
 \RequirePackage{listings}
-\RequirePackage{verbatim}
 
 
 % We start off defining a new node shape to hold our code chunks.
@@ -157,22 +157,6 @@
 
 %===============================================
 
-%--------------------- Begin Internal Package Variables ----------------
-
-% All package variables, macros and styles shall start with
-% tikzCode
-
-% Since listings does not like to work inside defined environments,
-% all source code enclosed in the tikzCodeBlock environment will
-% be stashed in a temporary file and parsed back in using: 
-%    \lstinputlisting
-%
-% Which has no problem with being embedded inside another
-% enviornment or macro.
-\newwrite\tikzCode@tempFile 
-
-%--------------------- End Internal Package Variables ------------------
-
 %--------------------- Begin Internal Package Macros ------------------
 
 \newcommand\tikzCode@setupKeys{%
@@ -187,46 +171,6 @@
 		/tikzCode/code title outline/.style={/tikzCode/defaults/code title outline},
 		/tikzCode/code footer/.style={/tikzCode/defaults/code footer},
 	}
-}
-
-\newcommand\tikzCode@beginOutputCapture{%
-	% This macro redirects output to the temp file. Everything
-	% is saved *verbatim*- hence the inclusion of the 
-	% verbatim package.
-	%
-	% We are about to overwrite some core macros from the
-	% verbatim package. Therefore, we begin a new group
-	% when we end this group the overwritten macros will
-	% revert to their original functionality.
-	\begingroup 
-	% As far as I can tell, invoking the @bsphack macro puts
-	% us in "stealth mode". That is, it's an extra safeguard to
-	% make sure nothing related to the commands following it
-	% slips out into the text of the document.
-	\@bsphack 
-	% Open the temp file for output.
-	\immediate\openout\tikzCode@tempFile\jobname.lst 
-	% Some voodoo that has to do with end-of-line characters,
-	% no real idea what this does, actually.
-	\let\do\@makeother\dospecials\catcode`\^^M\active 
-	% Here we overwrite the verbatim macro that is triggered
-	% to handle each line of input.
-	\def\verbatim@processline{% 
-		% The macro now pipes it's input to our temp file.
-		\immediate\write\tikzCode@tempFile{\the\verbatim@line}
-	}%
-	% Here we hand over control of text processing to the
-	% verbatim package. 
-	\verbatim@start
-}
-
-\newcommand{\tikzCode@suspendOutputCapture}{%
-	% Close the temporary file.
-	\immediate\closeout\tikzCode@tempFile
-	% Undoes whatever @bsphack does.
-	\@esphack 
-	% Allow overwritten verbatim macros to return to normal.
-	\endgroup
 }
 
 
@@ -373,26 +317,24 @@
 % This environment captures contents verbatim, processes the text with the
 % listings package, pagebreaks the results into chunks using the framed
 % package, then sets each chunk in a TikZ node.
-\newenvironment{tikzCodeBlock}[1][]{%
+%
+% Defined using `\lstnewenvironment` so that the listings package knows when to
+% stop capturing input verbatim.
+\lstnewenvironment{tikzCodeBlock}[1][]{%
   % Process environment options.
   \tikzCode@setupKeys
   % Shift the key directory to our namespace.
   \pgfkeys{ /tikzCode/.cd, #1 }%
-  \tikzCode@set@framedcommands
-  % Start the framed environment.
-  \MakeFramed{\FrameRestore}%
-  % Begin verbatim capture of everything inside this environment.
-  \tikzCode@beginOutputCapture
-}%
-{%
-  \tikzCode@suspendOutputCapture
   \ifx \tikzCode@listingStyle \undefined
-    \lstinputlisting[resetmargins = true]{\jobname.lst}%
+    \lstset{resetmargins = true}%
   \else
-    \lstinputlisting[style = \tikzCode@listingStyle, resetmargins = true]{\jobname.lst}%
+    \lstset{style = \tikzCode@listingStyle, resetmargins = true}%
   \fi
-  \endMakeFramed
-}
+  % Start the framed environment.
+  \tikzCode@set@framedcommands
+  \MakeFramed{\FrameRestore}%
+}%
+{\endMakeFramed}
 
 
 % tikzCodeInput
