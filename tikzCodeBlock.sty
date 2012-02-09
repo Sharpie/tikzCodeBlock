@@ -337,6 +337,31 @@
 {\endMakeFramed}
 
 
+% tikzCodeNode
+% ============
+% This is like the tikzCodeBlock environment except that it does use any
+% functionality from the framed package to produce multiple chunks that break
+% accross pages. Useful for creating listings that do not break and that can be
+% embedded inside another tikzPicture.
+%
+% If this environment is embedded inside another TikZ node, the text width
+% __MUST BE SET__ for that node. This is due to the use of `\vskip\topsep`.
+\lstnewenvironment{tikzCodeNode}[1][]{%
+  % Process environment options.
+  \tikzCode@setupKeys
+  % Shift the key directory to our namespace.
+  \pgfkeys{ /tikzCode/.cd, #1 }%
+  \ifx \tikzCode@listingStyle \undefined
+    \lstset{resetmargins = true}%
+  \else
+    \lstset{style = \tikzCode@listingStyle, resetmargins = true}%
+  \fi
+  % Collect listings output into a box for insertion into a TikZ picture
+  \setbox\@tempboxa=\vbox\bgroup\color@setgroup
+}%
+{\color@endgroup\egroup\vskip\topsep\noindent\tikzCode@place@singleframe{\box\@tempboxa}}
+
+
 % tikzCodeInput
 % =============
 % This is like the tikzCodeBlock environment except that it reads input from a
