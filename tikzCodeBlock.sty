@@ -289,6 +289,9 @@
 		fill = white,
 		inner sep = 1ex,
 		outer sep = 0pt,
+    % Explicitly unset the text width for the title node so that it always fits
+    % its self to the width of the title.
+    text width = ,
 		right = 0pt of code node body.north west,
 		anchor = base west
 	},
@@ -302,6 +305,9 @@
 		fill = white,
 		inner sep = 1ex,
 		outer sep = 0pt,
+    % Explicitly unset the text width for the footer node so that it always fits
+    % its self to the width of the title.
+    text width = ,
 		above = 0pt of code node body.south,
 		anchor = base
 	}
